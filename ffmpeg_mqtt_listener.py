@@ -1,11 +1,9 @@
+import asyncio
+import os
 from datetime import datetime
 
 import aiomqtt as mqtt
 import ffmpeg
-
-import asyncio
-import os
-
 from aiogram import Bot
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
@@ -14,6 +12,7 @@ from aiogram.types import FSInputFile
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 BOT_CHAT_ID = os.getenv("BOT_CHAT_ID")
 RTSP_URL = os.getenv("RTSP_URL")
+VIDEO_TIME = os.getenv("VIDEO_TIME", default=10)
 MQTT_HOST = os.getenv("MQTT_HOST")
 MQTT_USERNAME = os.getenv("MQTT_USERNAME")
 MQTT_PASSWORD = os.getenv("MQTT_PASSWORD")
