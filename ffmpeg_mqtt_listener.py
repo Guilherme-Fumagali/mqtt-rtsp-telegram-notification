@@ -29,15 +29,24 @@ def generate_video():
         "fflags": "nobuffer",
     }
 
-    (ffmpeg.input(RTSP_URL, **args)
-     .output('video.mp4', format='mp4', t=10)
-     .overwrite_output()
-     .run())
+    try:
+        (ffmpeg.input(RTSP_URL, **args)
+         .output('video.mp4', format='mp4', t=VIDEO_TIME)
+         .overwrite_output()
+         .run())
+    except Exception as e:
+        print(f"Error generating video: {e}")
+        print("Removing video file...")
+        os.remove("video.mp4")
 
 
 async def send_message():
-    await bot.send_message(BOT_CHAT_ID, f"Portão aberto!\nData: {datetime.now()}")
-    await bot.send_video(chat_id=BOT_CHAT_ID, video=FSInputFile("video.mp4"))
+    try:
+        await bot.send_message(BOT_CHAT_ID, f"Portão aberto!\nData: {datetime.now()}", request_timeout=10)
+        if os.path.exists("video.mp4"):
+            await bot.send_video(chat_id=BOT_CHAT_ID, video=FSInputFile("video.mp4"), request_timeout=10)
+    except Exception as e:
+        print(f"Error sending message: {e}")
 
 
 async def main():
