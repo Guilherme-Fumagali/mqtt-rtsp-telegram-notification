@@ -4,6 +4,7 @@ from datetime import datetime
 
 import aiomqtt as mqtt
 import ffmpeg
+import requests
 from aiogram import Bot
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
@@ -17,8 +18,25 @@ MQTT_HOST = os.getenv("MQTT_HOST")
 MQTT_USERNAME = os.getenv("MQTT_USERNAME")
 MQTT_PASSWORD = os.getenv("MQTT_PASSWORD")
 MQTT_TOPIC = os.getenv("MQTT_TOPIC")
+GOTIFY_URL = os.getenv("GOTIFY_URL")
+GOTIFY_TOKEN = os.getenv("GOTIFY_TOKEN")
 
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+
+try:
+    if GOTIFY_URL and GOTIFY_TOKEN:
+        response = requests.post(
+            f"{GOTIFY_URL}/message",
+            headers={"X-Gotify-Key": GOTIFY_TOKEN},
+            json={
+                "title": "Service started",
+                "message": "Service started",
+            },
+        )
+        response.raise_for_status()
+except Exception as e:
+    print(f"Error sending message to Gotify: {e}")
+    exit(1)
 
 
 def generate_video():
@@ -37,6 +55,19 @@ def generate_video():
         print(f"Error generating video: {e}")
         print("Removing video file...")
         os.remove("video.mp4")
+        if GOTIFY_URL and GOTIFY_TOKEN:
+            try:
+                response = requests.post(
+                    f"{GOTIFY_URL}/message",
+                    headers={"X-Gotify-Key": GOTIFY_TOKEN},
+                    json={
+                        "title": "Error generating video",
+                        "message": f"Error generating video: {e}",
+                    },
+                )
+                response.raise_for_status()
+            except Exception as e:
+                print(f"Error sending message to Gotify: {e}")
 
 
 async def send_message():
@@ -46,6 +77,19 @@ async def send_message():
             await bot.send_video(chat_id=BOT_CHAT_ID, video=FSInputFile("video.mp4"), request_timeout=10)
     except Exception as e:
         print(f"Error sending message: {e}")
+        if GOTIFY_URL and GOTIFY_TOKEN:
+            try:
+                response = requests.post(
+                    f"{GOTIFY_URL}/message",
+                    headers={"X-Gotify-Key": GOTIFY_TOKEN},
+                    json={
+                        "title": "Error sending message",
+                        "message": f"Error sending message: {e}",
+                    },
+                )
+                response.raise_for_status()
+            except Exception as e:
+                print(f"Error sending message to Gotify: {e}")
 
 
 async def main():
