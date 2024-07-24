@@ -23,20 +23,24 @@ GOTIFY_TOKEN = os.getenv("GOTIFY_TOKEN")
 
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 
-try:
+
+def send_gotify_message(title, message):
     if GOTIFY_URL and GOTIFY_TOKEN:
-        response = requests.post(
-            f"{GOTIFY_URL}/message",
-            headers={"X-Gotify-Key": GOTIFY_TOKEN},
-            json={
-                "title": "Service started",
-                "message": "Service started",
-            },
-        )
-        response.raise_for_status()
-except Exception as e:
-    print(f"Error sending message to Gotify: {e}")
-    exit(1)
+        try:
+            response = requests.post(
+                f"{GOTIFY_URL}/message",
+                headers={"X-Gotify-Key": GOTIFY_TOKEN},
+                json={
+                    "title": title,
+                    "message": message,
+                },
+            )
+            response.raise_for_status()
+        except Exception as e:
+            print(f"Error sending message to Gotify: {e}")
+
+
+send_gotify_message("Starting", "Starting ffmpeg_mqtt_listener.py")
 
 
 def generate_video():
@@ -55,19 +59,7 @@ def generate_video():
         print(f"Error generating video: {e}")
         print("Removing video file...")
         os.remove("video.mp4")
-        if GOTIFY_URL and GOTIFY_TOKEN:
-            try:
-                response = requests.post(
-                    f"{GOTIFY_URL}/message",
-                    headers={"X-Gotify-Key": GOTIFY_TOKEN},
-                    json={
-                        "title": "Error generating video",
-                        "message": f"Error generating video: {e}",
-                    },
-                )
-                response.raise_for_status()
-            except Exception as e:
-                print(f"Error sending message to Gotify: {e}")
+        send_gotify_message("Error generating video", f"Error generating video: {e}")
 
 
 async def send_message():
@@ -77,19 +69,7 @@ async def send_message():
             await bot.send_video(chat_id=BOT_CHAT_ID, video=FSInputFile("video.mp4"), request_timeout=10)
     except Exception as e:
         print(f"Error sending message: {e}")
-        if GOTIFY_URL and GOTIFY_TOKEN:
-            try:
-                response = requests.post(
-                    f"{GOTIFY_URL}/message",
-                    headers={"X-Gotify-Key": GOTIFY_TOKEN},
-                    json={
-                        "title": "Error sending message",
-                        "message": f"Error sending message: {e}",
-                    },
-                )
-                response.raise_for_status()
-            except Exception as e:
-                print(f"Error sending message to Gotify: {e}")
+        send_gotify_message("Error sending message", f"Error sending message: {e}")
 
 
 async def main():
@@ -107,6 +87,8 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
-
-
+    try:
+        asyncio.run(main())
+    except Exception as e:
+        print(f"Error: {e}")
+        send_gotify_message("Crash!", f"Error: {e}")
