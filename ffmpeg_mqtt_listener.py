@@ -93,7 +93,7 @@ async def send_message():
 
 
 async def main():
-    async with mqtt.Client(MQTT_HOST, username=MQTT_USERNAME, password=MQTT_PASSWORD) as client:
+    async with mqtt.Client(MQTT_HOST, username=MQTT_USERNAME, password=MQTT_PASSWORD, timeout=60) as client:
         await client.subscribe(MQTT_TOPIC)
         print(f"Subscribed to topic: {MQTT_TOPIC}")
         async for msg in client.messages:
