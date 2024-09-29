@@ -40,7 +40,7 @@ def on_message(message):
         print("Message sent!")
 
 
-mqttc = mqtt.Client()
+mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 mqttc.on_connect = on_connect
 mqttc.on_message = on_message
 
