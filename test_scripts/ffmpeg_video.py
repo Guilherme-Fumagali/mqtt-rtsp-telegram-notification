@@ -1,15 +1,17 @@
-import ffmpeg
 import os
+
+import ffmpeg
 
 
 def main(source, video_duration):
     args = {
-        "rtsp_transport": "tcp",
-        "flags": "low_delay",
-        "fflags": "nobuffer",
+        "rtsp_transport": "udp",
     }
     (ffmpeg.input(source, **args)
-     .output('video.mp4', format='mp4', t=video_duration)
+     .output('video.mp4',
+             codec='libx264',
+             r=24,
+             format='mp4', t=video_duration)
      .overwrite_output()
      .run())
 

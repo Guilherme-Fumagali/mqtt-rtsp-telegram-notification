@@ -13,7 +13,7 @@ bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTM
 
 async def send_video(filename, caption):
     try:
-        await bot.send_video(chat_id=BOT_CHAT_ID, video=FSInputFile(filename), caption=caption, request_timeout=10)
+        await bot.send_video(chat_id=BOT_CHAT_ID, video=FSInputFile(filename), caption=caption, request_timeout=120)
     except Exception as e:
         print(f"Error sending video: {e}")
         raise e

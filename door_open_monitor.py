@@ -29,16 +29,12 @@ def on_message(client, userdata, message):
         print("Generating video...")
         try:
             filename = generate_video()
-        except Exception as video_exception:
-            send_gotify_message("Error generating video", f"Error generating video: {video_exception}")
-            return
-        print("Sending message...")
-        try:
             asyncio.run(send_video(filename, f"Portão aberto!\nData: {datetime.now()}"))
             remove_video(filename)
-        except Exception as message_exception:
-            send_gotify_message("Error sending video", f"Error sending video: {message_exception}")
-        print("Message sent!")
+            print("Message sent!")
+        except Exception as exception:
+            send_gotify_message("Error", f"Error generating video: {exception}")
+            remove_old_videos()
 
 
 mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
