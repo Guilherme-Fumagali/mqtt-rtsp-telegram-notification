@@ -16,14 +16,14 @@ MQTT_TOPIC = os.getenv("MQTT_TOPIC")
 send_gotify_message("Starting", "Starting ffmpeg_mqtt_listener.py")
 
 
-def on_connect(client, reason_code):
+def on_connect(client, userdata, flags, reason_code, properties):
     print(f"Connected with result code {reason_code}")
     client.subscribe(MQTT_TOPIC)
     send_gotify_message("Started",
                         f"Connected to mqtt server with result code {reason_code} and subscribed to topic {MQTT_TOPIC}")
 
 
-def on_message(message):
+def on_message(client, userdata, message):
     print(f"Received message: {message.payload}")
     if message.payload == b"open":
         print("Generating video...")
