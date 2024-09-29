@@ -4,7 +4,7 @@ from datetime import datetime
 
 import paho.mqtt.client as mqtt
 
-from services.ffmpeg import generate_video
+from services.ffmpeg import generate_video, remove_video, remove_old_videos
 from services.gotify import send_gotify_message
 from services.telegram import send_video
 
@@ -28,13 +28,14 @@ def on_message(client, userdata, message):
     if message.payload == b"open":
         print("Generating video...")
         try:
-            video_buffer = generate_video()
+            filename = generate_video()
         except Exception as video_exception:
             send_gotify_message("Error generating video", f"Error generating video: {video_exception}")
             return
         print("Sending message...")
         try:
-            asyncio.run(send_video(video_buffer, f"Portão aberto!\nData: {datetime.now()}"))
+            asyncio.run(send_video(filename, f"Portão aberto!\nData: {datetime.now()}"))
+            remove_video(filename)
         except Exception as message_exception:
             send_gotify_message("Error sending video", f"Error sending video: {message_exception}")
         print("Message sent!")
@@ -49,6 +50,7 @@ mqttc.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
 mqttc.connect(MQTT_HOST, 1883, 60)
 
 try:
+    remove_old_videos()
     mqttc.loop_forever()
 except Exception as e:
     print(f"Error: {e}")
