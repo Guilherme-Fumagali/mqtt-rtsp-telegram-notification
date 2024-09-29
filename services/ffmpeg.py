@@ -12,7 +12,7 @@ def generate_video():
         filename = f"video_{int(datetime.now().timestamp())}.mp4"
 
         (ffmpeg.input(RTSP_URL, rtsp_transport="udp")
-         .output(filename, vcodec="libx264", preset="ultrafast", r=24)
+         .output(filename, vcodec="libx264", preset="ultrafast", r=24, format="mp4", t=VIDEO_TIME)
          .overwrite_output()
          .run())
 
