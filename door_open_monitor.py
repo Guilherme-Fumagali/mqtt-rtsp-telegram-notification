@@ -29,8 +29,9 @@ def on_message(client, userdata, message):
         print("Generating video...")
         try:
             filename = generate_video()
-            asyncio.run(send_video(filename, f"Portão aberto!\nData: {datetime.now()}"))
-            remove_video(filename)
+            loop = asyncio.get_event_loop()  # Get the running event loop
+            task = loop.create_task(send_video(filename, f"Portão aberto!\nData: {datetime.now()}"))
+            task.add_done_callback(lambda t: remove_video(filename))  # Remove video when sending is done
             print("Message sent!")
         except Exception as exception:
             send_gotify_message("Error", f"Error generating video: {exception}")
@@ -47,7 +48,7 @@ mqttc.connect(MQTT_HOST, 1883, 60)
 
 try:
     remove_old_videos()
-    mqttc.loop_forever()
+    mqttc.loop_forever(30, True)
 except Exception as e:
     print(f"Error: {e}")
     send_gotify_message("Crash", f"Error: {e}")
