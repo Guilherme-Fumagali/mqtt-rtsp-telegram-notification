@@ -1,9 +1,12 @@
+import logging
 import os
 
 import requests
 
 GOTIFY_URL = os.getenv("GOTIFY_URL")
 GOTIFY_TOKEN = os.getenv("GOTIFY_TOKEN")
+
+logger = logging.getLogger(__name__)
 
 
 def send_gotify_message(title, message):
@@ -16,7 +19,11 @@ def send_gotify_message(title, message):
                     "title": title,
                     "message": message,
                 },
+                timeout=10,
             )
             response.raise_for_status()
-        except Exception as e:
-            print(f"Error sending message to Gotify: {e}")
+            logger.debug("Mensagem Gotify enviada", extra={"title": title})
+        except Exception:
+            logger.exception("Erro enviando mensagem para Gotify", extra={"title": title})
+    else:
+        logger.debug("Gotify desabilitado - variáveis ausentes")

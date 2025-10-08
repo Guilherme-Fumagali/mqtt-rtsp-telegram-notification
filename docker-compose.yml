@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      args:
+        - TZ=${TZ:-UTC}
+    container_name: mqtt-rtsp-telegram
+    restart: unless-stopped
+    env_file:
+      - .env
+    shm_size: 1024m
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    network_mode: host
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
