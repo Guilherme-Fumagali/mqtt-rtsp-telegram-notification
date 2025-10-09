@@ -27,17 +27,6 @@ send_gotify_message("Starting", "Starting ffmpeg_mqtt_listener.py")
 logger.info("Aplicação iniciando", extra=config.to_dict_redacted())
 
 
-def _ensure_event_loop():
-    try:
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-            return loop, False
-        return loop, False
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        return loop, True
-
-
 def _build_caption(success_results):
     labels = [r.camera_label for r in success_results]
     label_line = ", ".join(labels)
@@ -54,28 +43,12 @@ def _record_and_send_batch():
         caption = _build_caption(success)
         files = [r.file_path for r in success if r.file_path]
 
-        loop, must_close = _ensure_event_loop()
-        try:
-            if loop.is_running():
-                logger.debug("Loop asyncio ativo - criando task para envio (grupo)")
-                task = loop.create_task(send_videos(files, caption))
-                def _after(t: asyncio.Task):
-                    try:
-                        from services.recorder_service import MultiCameraRecorder
-                        MultiCameraRecorder.cleanup_files(success)
-                        logger.debug("Arquivos removidos após envio", extra={"count": len(files)})
-                    except Exception:
-                        logger.exception("Erro ao remover arquivos após envio")
-                task.add_done_callback(_after)
-            else:
-                logger.debug("Executando envio síncrono (grupo)")
-                loop.run_until_complete(send_videos(files, caption))
-                from services.recorder_service import MultiCameraRecorder
-                MultiCameraRecorder.cleanup_files(success)
-                logger.debug("Arquivos removidos após envio (modo síncrono)")
-        finally:
-            if must_close:
-                loop.close()
+        logger.debug("Executando envio com asyncio.run()")
+        asyncio.run(send_videos(files, caption))
+        from services.recorder_service import MultiCameraRecorder
+        MultiCameraRecorder.cleanup_files(success)
+        logger.debug("Arquivos removidos após envio")
+
         logger.info("Processo de gravação+envio concluído", extra={"arquivos": len(success)})
     except Exception as e:
         logger.exception("Erro durante processo multi-câmera")

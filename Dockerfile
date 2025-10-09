@@ -12,12 +12,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     tzdata \
     && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
+    && apt-get clean \
+    && apt-get autoremove -y
 
 WORKDIR /app
 
 COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt && \
+    find /usr/local/lib/python3.12/site-packages -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 
 ARG APP_USER=app
 ARG APP_UID=1000
